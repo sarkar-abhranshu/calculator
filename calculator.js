@@ -30,6 +30,15 @@ const operate = (a, b, operation) => {
             result = Math.round(multiply(a, b) * 1000)/1000;
             break;
         case '/':
+            if(b === 0){
+                displayP.textContent = 'Cannot divide by zero';
+                op1 = op2 = undefined;
+                operation = undefined;
+                isFirstOperand = true;
+                isResultDisplayed = true;
+                numberPressed = false;
+                return null;
+            }
             result = Math.round(divide(a, b) * 1000)/1000;
             break;
     }
@@ -73,10 +82,12 @@ ops.forEach(op => {
         if (opText === '=') {
             if (op1 !== undefined && op2 !== undefined && operation) {
                 result = operate(op1, op2, operation);
-                displayP.textContent = result;
-                isResultDisplayed = true;
-                isFirstOperand = true;
-                numberPressed = false;
+                if (result !== null) {  // Add check for division by zero
+                    displayP.textContent = result;
+                    isResultDisplayed = true;
+                    isFirstOperand = true;
+                    numberPressed = false;
+                }
             }
         } else if (opText === 'AC') {
             displayP.textContent = '';
