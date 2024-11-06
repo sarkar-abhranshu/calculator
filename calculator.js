@@ -48,21 +48,25 @@ const operate = (a, b, operation) => {
 let isFirstOperand = true;
 let isResultDisplayed = false;
 let numberPressed = false;
+let isDecimal = false;
 
 const setOperands = (num) => {
     numberPressed = true;
     if (isResultDisplayed) {
         displayP.textContent = num;
-        op1 = parseFloat(num);
+        op1 = num;
         op2 = undefined;
         operation = undefined;
         isFirstOperand = false;
         isResultDisplayed = false;
+        isDecimal = false;
     } else if (isFirstOperand) {
-        op1 = parseFloat((op1 || '') + num);
+        if (op1 === undefined) op1 = '';
+        op1 = op1 + num;
         displayP.textContent = op1;
     } else {
-        op2 = parseFloat((op2 || '') + num);
+        if (op2 === undefined) op2 = '';
+        op2 = op2 + num;
         displayP.textContent += num;
     }
 };
@@ -76,32 +80,82 @@ nums.forEach(num => {
 ops.forEach(op => {
     op.addEventListener('click', (e) => {
         const opText = e.target.textContent;
-        if (opText !== 'AC' && !numberPressed) {
+        if (opText !== 'AC' && !numberPressed && opText !== '.' && opText !== ' <- ') {
             return;
         }
         if (opText === '=') {
             if (op1 !== undefined && op2 !== undefined && operation) {
+                op1 = parseFloat(op1);
+                op2 = parseFloat(op2);
                 result = operate(op1, op2, operation);
-                if (result !== null) {  // Add check for division by zero
+                if (result !== null) {
                     displayP.textContent = result;
                     isResultDisplayed = true;
                     isFirstOperand = true;
                     numberPressed = false;
+                    isDecimal = false;
                 }
             }
-        } else if (opText === 'AC') {
+        } 
+        else if (opText === 'AC') {
             displayP.textContent = '';
             op1 = op2 = result = undefined;
             operation = undefined;
             isFirstOperand = true;
             isResultDisplayed = false;
             numberPressed = false;
-        } else {
+            isDecimal = false;
+        }
+        else if(opText === '.') {
+            if (isFirstOperand && (!op1 || !op1.includes('.'))) {
+                if (!op1) op1 = '0';
+                op1 += '.';
+                displayP.textContent = op1;
+                numberPressed = true;
+            } else if (!isFirstOperand && (!op2 || !op2.includes('.'))) {
+                if (!op2) op2 = '0';
+                op2 += '.';
+                displayP.textContent += '.';
+                numberPressed = true;
+            }
+        }
+        else if(opText === ' <- ') {
+            if (isResultDisplayed) return;
+            
+            let displayText = displayP.textContent;
+            if (displayText.length === 0) return;
+
+            if (displayText.endsWith(' ')) {
+                displayText = displayText.slice(0, -3);
+                operation = undefined;
+                isFirstOperand = true;
+            } else {
+                displayText = displayText.slice(0, -1);
+                if (isFirstOperand) {
+                    op1 = op1.slice(0, -1);
+                    if (op1 === '') op1 = undefined;
+                } else {
+                    op2 = op2?.slice(0, -1);
+                    if (op2 === '') op2 = undefined;
+                }
+            }
+
+            displayP.textContent = displayText;
+            if (displayText === '') {
+                op1 = op2 = undefined;
+                operation = undefined;
+                isFirstOperand = true;
+                numberPressed = false;
+                isDecimal = false;
+            }
+        }
+        else {
             if (!operation) {
                 operation = opText;
                 displayP.textContent += ` ${operation} `;
                 isFirstOperand = false;
                 numberPressed = false;
+                isDecimal = false;
             }
         }
     });
